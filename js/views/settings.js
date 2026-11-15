@@ -53,7 +53,12 @@ export async function renderSettings(root, ctx) {
       if (problem) return toast(problem);
       const when = json.exportedAt ? new Date(json.exportedAt).toLocaleString() : 'an unknown date';
       confirmSheet(`Replace everything on this device with the backup from ${when}?`, 'Replace my data', async () => {
-        await replaceAll(json.data);
+        try {
+          await replaceAll(json.data);
+        } catch {
+          toast("Import failed. That file has bad data, so nothing was changed.");
+          return;
+        }
         location.reload();
       });
     },

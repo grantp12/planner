@@ -14,6 +14,10 @@ export function blockSheet(block, { frame, onSave, onRemove, extra }) {
     const title = block.part ? `${block.title} (${block.part})` : block.title;
 
     const save = () => {
+      if (!startIn.value || !endIn.value) {
+        err.textContent = 'Pick both a start and an end time.';
+        return;
+      }
       const start = normalizeMin(toMin(startIn.value), frame);
       let end = normalizeMin(toMin(endIn.value), frame);
       if (end <= start && end + 1440 - start < 600) end += 1440;

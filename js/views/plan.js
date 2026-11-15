@@ -291,7 +291,13 @@ export async function renderPlan(root, ctx) {
     // Anything still in "also lined up" moves to tomorrow (and will ask keep/drop if missed again).
     for (const t of state.extras) await saveTask({ ...t, plannedDate: addDays(today, 1), rolloverCount: 1 });
 
-    await saveDay({ ...day, blocks: p.blocks, lunchFree: p.lunchFree, confirmed: true, plannedAt: new Date().toISOString(), notes: p.notes });
+    // Re-planning keeps what you've already ticked off.
+    const doneIds = new Set(tasks.filter((t) => t.plannedDate === today && t.status === 'done').map((t) => t.id));
+    for (const b of p.blocks) if (b.routineId && day.routineDone.includes(b.routineId)) b.done = true;
+    const doneBlocks = (day.blocks || []).filter((b) => b.done && b.taskId && doneIds.has(b.taskId) && !p.blocks.some((x) => x.taskId === b.taskId));
+    const blocks = [...p.blocks, ...doneBlocks].sort((a, b) => a.start - b.start);
+
+    await saveDay({ ...day, blocks, lunchFree: p.lunchFree, confirmed: true, plannedAt: new Date().toISOString(), notes: p.notes });
     toast('Plan set. Have a good day.');
     ctx.go('today');
   }

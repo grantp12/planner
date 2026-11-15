@@ -21,6 +21,9 @@ export async function renderCheckin(root, ctx) {
   const view = h('div');
   root.append(view);
 
+  let msgText = '';
+  const say = (m) => ((msgText = m), draw());
+
   function draw() {
     const parts = [
       h('p', { class: 'eyebrow' }, niceDate(today)),
@@ -74,11 +77,15 @@ export async function renderCheckin(root, ctx) {
       );
     }
 
-    parts.push(h('div', { class: 'cta' }, h('button', { type: 'button', class: 'btn primary', onclick: save }, 'Save check-in')));
+    parts.push(h('p', { class: 'error', role: 'alert' }, msgText), h('div', { class: 'cta' }, h('button', { type: 'button', class: 'btn primary', onclick: save }, 'Save check-in')));
     fill(view, ...parts);
   }
 
   async function save() {
+    const unanswered = tasks.filter((t) => !answers[t.id]);
+    if (unanswered.length) return say(`Tap Done or Not done for "${unanswered[0].title}" first.`);
+    const noReason = tasks.find((t) => answers[t.id].result === 'notDone' && !answers[t.id].reason);
+    if (noReason) return say(`Pick what got in the way for "${noReason.title}". One tap is enough.`);
     day.results ||= {};
     for (const t of tasks) {
       const a = answers[t.id];

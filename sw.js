@@ -5,7 +5,7 @@
 // (the new version is downloaded in the background and used on next launch).
 // On localhost it's network-first, so edits show up on a normal reload.
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = `planner-${VERSION}`;
 const ASSETS = [
   './',
@@ -37,7 +37,7 @@ const ASSETS = [
 const DEV = ['localhost', '127.0.0.1', '[::1]'].includes(self.location.hostname);
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
